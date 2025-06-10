@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Grid,
@@ -18,36 +18,32 @@ import axios from 'axios';
 import { useNavigate, Navigate } from 'react-router-dom';
 
 const NotesDashboard = () => {
-  // All hooks at the top
   const [notes, setNotes] = useState([]);
   const [search, setSearch] = useState('');
   const [editingNote, setEditingNote] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const navigate = useNavigate();
 
-  // Token check after hooks
   const token = localStorage.getItem('token');
 
-  // Fetch notes
-  const fetchNotes = () => {
+  // ✅ Memoized fetchNotes function to fix ESLint warning
+  const fetchNotes = useCallback(() => {
     axios
       .get('/api/notes', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       })
       .then(res => setNotes(res.data))
       .catch(() => {
         setSnackbar({ open: true, message: 'Failed to load notes.', severity: 'error' });
       });
-  };
+  }, [token]);
 
   useEffect(() => {
     if (token) {
       fetchNotes();
     }
-    // eslint-disable-next-line
-  }, [token]);
+  }, [token, fetchNotes]); // ✅ ESLint happy now
 
-  // Redirect if not authenticated
   if (!token) {
     return <Navigate to="/login" replace />;
   }
@@ -55,7 +51,7 @@ const NotesDashboard = () => {
   const handleCreate = async (note) => {
     try {
       const res = await axios.post('/api/notes', note, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setNotes([res.data, ...notes]);
       setSnackbar({ open: true, message: 'Note added!', severity: 'success' });
@@ -67,7 +63,7 @@ const NotesDashboard = () => {
   const handleUpdate = async (note) => {
     try {
       const res = await axios.put(`/api/notes/${note._id}`, note, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setNotes(notes.map(n => (n._id === note._id ? res.data : n)));
       setEditingNote(null);
@@ -80,9 +76,9 @@ const NotesDashboard = () => {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`/api/notes/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setNotes(notes.filter(n => n._id !== id)); // <-- UI updates immediately
+      setNotes(notes.filter(n => n._id !== id));
       setSnackbar({ open: true, message: 'Note deleted.', severity: 'info' });
     } catch {
       setSnackbar({ open: true, message: 'Failed to delete note.', severity: 'error' });
@@ -94,7 +90,6 @@ const NotesDashboard = () => {
     navigate('/login');
   };
 
-  // Use title (not heading) for search, to match backend schema
   const filteredNotes = notes.filter(note =>
     (note.title || '').toLowerCase().includes(search.toLowerCase()) ||
     (note.content || '').toLowerCase().includes(search.toLowerCase())
@@ -121,8 +116,6 @@ const NotesDashboard = () => {
             minHeight: 700,
             borderRadius: 5,
             p: { xs: 2, sm: 4 },
-            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.17)',
-            backdropFilter: 'blur(8px)',
             bgcolor: 'rgba(255,255,255,0.8)',
             display: 'flex',
             flexDirection: 'column',
@@ -136,24 +129,25 @@ const NotesDashboard = () => {
               </IconButton>
             </Tooltip>
           </Box>
+
           <Typography
             variant="h3"
             align="center"
             sx={{
               fontWeight: 800,
-              letterSpacing: 1,
               color: '#1976d2',
               mb: 2,
-              textShadow: '0 2px 8px rgba(25, 118, 210, 0.07)',
             }}
           >
             My Notes
           </Typography>
+
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, mb: 3, gap: 2 }}>
             <Box sx={{ flex: 2 }}>
               <SearchBar search={search} setSearch={setSearch} />
             </Box>
           </Box>
+
           <Grid
             container
             spacing={3}
@@ -198,10 +192,10 @@ const NotesDashboard = () => {
         </Paper>
       </Fade>
 
-      {/* Floating Add Note Button (for create) */}
+      {/* Floating Add Note Button */}
       <NoteForm onSubmit={handleCreate} />
 
-      {/* Modal for editing a note */}
+      {/* Edit Note Modal */}
       {editingNote && (
         <NoteForm
           note={editingNote}
@@ -220,6 +214,7 @@ const NotesDashboard = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
       <Box
         component="footer"
         sx={{
@@ -229,7 +224,6 @@ const NotesDashboard = () => {
           letterSpacing: 0.5,
           fontWeight: 400,
           opacity: 0.7,
-          userSelect: 'none',
         }}
       >
         By Aman Pandey | 2025
