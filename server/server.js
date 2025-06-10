@@ -10,7 +10,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json()); // to parse JSON bodies
 
-const authRouter = require('./routes/Auth');
+const authRouter = require('./routes/auth');
 
 app.use('/api/auth', authRouter);
 
