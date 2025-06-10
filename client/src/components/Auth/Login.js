@@ -22,7 +22,7 @@ function Login({ onShowSignup }) {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
+      const response = await axios.post('https://manage-notes.onrender.com', {
         email,
         password,
       });
