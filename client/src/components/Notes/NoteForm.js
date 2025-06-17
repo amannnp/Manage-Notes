@@ -40,16 +40,15 @@ function NoteForm({ onSubmit, note = null, onCancel }) {
     if (note) setOpen(true);
   }, [note]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!heading.trim() && !content.trim()) return;
-    onSubmit({ heading, content, color, id: note?.id });
-    setHeading('');
-    setContent('');
-    setColor(COLOR_OPTIONS[0].value);
-    setOpen(false);
-  };
-
+const handleSubmit = (e) => {
+  e.preventDefault();
+  if (!heading.trim() && !content.trim()) return;
+  onSubmit({heading, content, color, _id: note?._id }); 
+  setHeading('');
+  setContent('');
+  setColor(COLOR_OPTIONS[0].value);
+  setOpen(false);
+};
   return (
     <>
       {/* Floating Add Note Button */}

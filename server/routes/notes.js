@@ -29,6 +29,7 @@ router.get('/search', auth, async (req, res) => {
 });
 
 router.post('/', auth, async (req, res) => {
+  console.log(req.body)
   const { heading, content, color } = req.body;
   const note = new Note({
     user: req.userId,

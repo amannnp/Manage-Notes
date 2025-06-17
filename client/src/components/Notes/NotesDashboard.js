@@ -26,10 +26,9 @@ const NotesDashboard = () => {
 
   const token = localStorage.getItem('token');
 
-  // ✅ Memoized fetchNotes function to fix ESLint warning
   const fetchNotes = useCallback(() => {
     axios
-      .get('/api/notes', {
+      .get('https://manage-notes.onrender.com/api/notes', {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(res => setNotes(res.data))
@@ -42,15 +41,16 @@ const NotesDashboard = () => {
     if (token) {
       fetchNotes();
     }
-  }, [token, fetchNotes]); // ✅ ESLint happy now
+  }, [token, fetchNotes]);
 
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
   const handleCreate = async (note) => {
+     console.log("Note being sent to backend:", note);
     try {
-      const res = await axios.post('/api/notes', note, {
+      const res = await axios.post('https://manage-notes.onrender.com/api/notes', note, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setNotes([res.data, ...notes]);
@@ -61,8 +61,9 @@ const NotesDashboard = () => {
   };
 
   const handleUpdate = async (note) => {
+    console.log("Note being updated:", note);
     try {
-      const res = await axios.put(`/api/notes/${note._id}`, note, {
+      const res = await axios.put(`https://manage-notes.onrender.com/api/notes/${note._id}`, note, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setNotes(notes.map(n => (n._id === note._id ? res.data : n)));
@@ -75,7 +76,7 @@ const NotesDashboard = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/notes/${id}`, {
+      await axios.delete(`https://manage-notes.onrender.com/api/notes/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setNotes(notes.filter(n => n._id !== id));
@@ -91,7 +92,7 @@ const NotesDashboard = () => {
   };
 
   const filteredNotes = notes.filter(note =>
-    (note.title || '').toLowerCase().includes(search.toLowerCase()) ||
+    (note.heading || '').toLowerCase().includes(search.toLowerCase()) ||
     (note.content || '').toLowerCase().includes(search.toLowerCase())
   );
 
@@ -121,7 +122,6 @@ const NotesDashboard = () => {
             flexDirection: 'column',
           }}
         >
-          {/* Logout Button */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
             <Tooltip title="Logout">
               <IconButton onClick={handleLogout} color="error">
@@ -192,10 +192,8 @@ const NotesDashboard = () => {
         </Paper>
       </Fade>
 
-      {/* Floating Add Note Button */}
       <NoteForm onSubmit={handleCreate} />
 
-      {/* Edit Note Modal */}
       {editingNote && (
         <NoteForm
           note={editingNote}
